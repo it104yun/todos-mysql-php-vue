@@ -1,0 +1,70 @@
+/* Color from : https://www.shutterstock.com/zh-Hant/blog/101-free-color-combinations-design-inspiration */
+/* 說明 : Home  免費下載  激發你的設計靈感!! 讓人愛不釋手的101組配色方案 */
+
+:root {
+        /* 01.舒適與中性(Comfy & Neutral) */
+        --ComfyNeutral_mushroom : #E1DCD9;
+        --ComfyNeutral_elephant : #8F8681;
+        --ComfyNeutral_thatch : #A67F78;       /* 茅草(稻草)        */
+        --ComfyNeutral_gunmetal : #32435F;     /* 砲銅的；青銅的  */      
+
+        /* 03.薄霧綠(Misty Greens) */
+        --MistyGreen_swansdown : #D1EDE1;      /*天鵝的絨毛；用於做嬰兒衣服的柔軟的布料*/
+        --MistyGreen_larchmere : #7BC5AE;      /*larch:落葉松屬植物 */
+        --MistyGreen_observatory : #028C6A;    /*天文臺；氣象臺 */
+        --MistyGreen_kaitoke : #003E19;    /*Kaitoke Regional Park */
+
+        /* 05.西部風格(Western Wear) */
+        --WesternWear_linen : #D5D2C1;     /*亞麻布 */
+        --WesternWear_twine : #BD8E62;       /*麻繩 */
+        --WesternWear_fawn : #A46843;    /*牛皮 */
+        --WesternWear_hickory : #370D00;   /* Hickory:山核桃屬植物 */ 
+        
+        /* 23.純粹與天然色(Pure & Pigmented） */
+        --PurePigmented_sea-glass : #B2D6CA;  /*海玻璃 */
+        --PurePigmented_sunstone : #FFB547;   /*日光石 */
+        --PurePigmented_poppy : #FE5858;   
+        --PurePigmented_pine : #024B40;       
+        --PurePigmented_merlot : #5D353E;    
+
+        /* 91.純淨的農產 (Pure Produce) */
+            /* Original */
+        --PureProduce_amaranth : #9E5165;
+        --PureProduce_tomato : #A51E22;
+        --PureProduce_zucchini : #204B24;
+        --PureProduce_denim : #0B2637;
+           /* AI */
+        --PureProduce_lettuce : #E6F2E4;
+        --PureProduce_cauliflower : #F3F0E8;
+        --PureProduce_asparagus : #7BAE7F;
+        --PureProduce_carrot : #F29E4C;
+        --PureProduce_eggplant : #6B4C7A;
+
+       /* 93.多汁飽滿的水果(Juicy Fruits) */
+          /* Original */
+        --JuicyFruits_strawberry : #EE3239;
+        --JuicyFruits_fruitsalad : #5EAA5F;    
+        --JuicyFruits_supernova : #FECE00;
+        --JuicyFruits_grape : #9D6AB9;
+          /* AI */
+        --JuicyFruits_watermelon : #FF3B3F;
+        --JuicyFruits_tangelo : #FF793F;    
+        --JuicyFruits_mango : #FFB93F;
+        --JuicyFruits_kiwi : #4CAF50;
+
+        /* 96. 裝飾花卉(Decorative Florals) */
+        --DecorativeFlorals_ballet : #E6B6C2;
+        --DecorativeFlorals_lipstick : #D4587A;    
+        --DecorativeFlorals_cerise : #DC364C;
+        --DecorativeFlorals_moss : #778633;
+
+        /* 97.蜜蜂嗡嗡與盛開的花朵(Buzzing Blooms) */
+        --BuzzingBlooms_bumblebee : #FED700;
+        --BuzzingBlooms_curious-blue : #1E9AD0;
+        --BuzzingBlooms_copper : #7E2E0B;
+        --BuzzingBlooms_tawny : #9A6231;
+}
+
+
+
+

@@ -1,0 +1,104 @@
+
+@import url('../mycolor.css');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;300;400;500;700;900&display=swap');
+
+.gf {
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+.gfw100{
+    font-weight: 100;
+}
+
+.gfw300{
+    font-weight: 300;
+}
+
+.gfw400{
+    font-weight: 400;
+}
+
+.gfw500{
+    font-weight: 500;
+}
+
+.gfw700{
+    font-weight: 700;
+}
+
+.gfw900{
+    font-weight: 900;
+}
+
+
+/* text-shadow 
+
+.text-shadow{
+    text-shadow: 1px 5px  1px gray,
+                -10px -20px 10px gray
+}
+    1px:右    5px:下    1px:模糊程度-輕
+    -10px:左 -20px:上  10px:模糊程度-輕
+    不同位置的陰影,以逗號隔開
+*/
+
+.text-shadow{
+    text-shadow: 1px 1px gray
+}
+
+.text-shadow-s{
+    text-shadow: 2.5px 2.5px gray
+}
+
+.text-shadow-m{
+    text-shadow: 5px 5px gray
+}
+
+.text-shadow-l{
+    text-shadow: 7.5px 7.5px gray
+}
+
+.text-shadow-1xl{
+    text-shadow: 10px 10px gray
+}
+
+.text-shadow-2xl{
+    text-shadow: 12.5px 12.5px gray
+}
+
+.text-shadow-3xl{
+    text-shadow: 15px 15px gray
+}
+
+/* text-shine */
+
+.text-shine{
+    text-shadow: 0 0 0.05em yellow
+}
+
+.text-shine-s{
+    text-shadow: 0 0 0.1em yellow
+}
+
+.text-shine-m{
+    text-shadow: 0 0 0.15em yellow
+}
+
+.text-shine-l{
+    text-shadow: 0 0 0.2em yellow
+}
+
+.text-shine-1xl{
+    text-shadow: 0 0 0.25em yellow
+}
+
+.text-shine-2xl{
+    text-shadow: 0 0 0.3em yellow
+}
+
+.text-shine-3xl{
+    text-shadow: 0 0 0.35em yellow
+}
+
+
+

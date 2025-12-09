@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/third_party/bootstrap5.3.8.min.css">
+    <link rel="stylesheet" href="css/third_party/fontawesome-free-7.1.0-web/css/all.min.css">
+    <link rel="stylesheet" href="css/my/mycolor.css">
+    <link rel="stylesheet" href="css/my/myfont.css">
+    <link rel="stylesheet" href="css/my/index.css">
+    <title>待辨事項</title>
+</head>
+<body>
+    <div id="vue_show" class="container">    <!-- 這裏除了id="vue_show" 之外的內容不會被Vue.js接管。 -->
+        <!-- 下面的內容會被Vue.js接管。 -->
+        <div v-bind:class="vclass.title">{{ vtxt.title }} {{ vtxt.etitle }}</div>
+        <div class="row justify-content-center mt-4">
+            <div class="input-group mb-3">
+                <span class="input-group-text text-bg-success gf gfw500">待辨事項</span>
+                <!-- v-model="vdata.todo"將輸入框的內容與 Vue 資料中的 vdata.todo 變數同步。 -->
+                <!-- v-on:keyup.enter 當使用者在輸入框中按鍵並放開 Enter 鍵 時，執行 todoC 方法（通常是用來新增待辦事項）。 -->
+                <!-- v-on:keyup.esc 當使用者在輸入框中按鍵並放開 ESC 鍵 時，將 vdata.todo 的值設定為空字串（''），達到清空輸入框的目的。 -->
+                <input type="text" class="form-control" 
+                    v-model="vdata.todo" 
+                    v-on:keyup.enter="Ctodo"
+                    v-on:keyup.esc="vdata.todo=''"        
+                    placeholder="新增:按下enter或新增按紐 / 清空:ESC">
+                <button class="btn btn-outline-success gf gfw500" type="button" id="btn-Ctodo" v-on:click="Ctodo">新增</button>
+            </div>
+        </div>
+
+<!-- card begin -->
+        <div class="card text-center border border-5 border-success-subtle rounded-3">
+            <div v-bind:class="vclass.cardhd" style="background-color: var(--MistyGreen_swansdown); color:var(--PurePigmented_pine);">
+                <ul v-bind:class="vclass.navtabs">
+                    <li v-bind:class="vclass.navitem" v-on:click=" vdata.visible='all' ">
+                        <a class="nav-link" href="#" v-bind:class="{'active':vdata.visible=='all'}">全部</a>
+                    </li>
+                    <li v-bind:class="vclass.navitem" v-on:click=" vdata.visible='inprogress' ">
+                        <a class="nav-link" href="#" v-bind:class="{'active':vdata.visible=='inprogress'}">進行中</a>
+                    </li>
+                    <li v-bind:class="vclass.navitem" v-on:click=" vdata.visible='completed' ">
+                        <a class="nav-link" href="#" v-bind:class="{'active':vdata.visible=='completed'}">已完成</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div v-bind:class="vclass.cardbd">
+                <div class="card-title d-grid col-10 mx-auto mb-2">
+                    <button type="button" class="fs-5 btn btn-outline-success border border-3 border-dark-subtle"
+                        v-bind:class="{'btn':vdata.sub_collapse}"
+                        v-on:click="vdata.sub_collapse = !vdata.sub_collapse">
+                        待辦事項明細 
+                        <i class="fa-solid fa-angles-down fa-xl py-0 ms-3"></i>展開
+                        <i class="fa-solid fa-angles-up fa-xl py-0 ms-1"></i>收合
+                    </button>
+                </div>
+                <div v-bind:class="vclass.cardtxt">
+                    <ul class="list-group">
+                        <li class="list-group-item border border-1 border-success-subtle rounded-2 mb-1"
+                            v-for="(item,main_index) in filter_todo" 
+                            v-bind:class="{'list-group-item-secondary':main_index%2!=0}"
+                            v-bind:key="main_index">
+<!-- ---------------------------- -->
+                            <div class="d-flex align-items-center w-100">
+                                <div class="d-flex flex-grow-1" v-if="vdata.edit_id==item.item_id">
+                                    <input type="text" class="form-control me-3" 
+                                        v-model="vdata.edit_title"
+                                        v-on:keyup.enter="edit_done(item)"
+                                        v-on:keyup.esc="edit_cancel(item)">
+                                    <button type="button" class="btn btn-sm bg-info ms-auto" 
+                                        v-on:click="edit_done(item)">  
+                                        <i class="fa-solid fa-right-from-bracket fa-lg"></i>
+                                    </button>
+                                </div>
+
+                                <div class="d-flex flex-grow-1 justify-content-between" v-else>
+                                    <div class="form-check me-3">
+                                        <input type="checkbox" class="form-check-input" 
+                                            v-bind:id="item.item_id" 
+                                            v-model="item.completed"
+                                            v-on:change="toggleComplete(item)">
+                                        <label class="form-check-label" 
+                                            v-bind:for="item.item_id"
+                                            v-bind:class="{'text-decoration-line-through':item.completed}">
+                                            {{ main_index+1 }}.{{ item.title }}  |  截止日期: {{ item.deadline }}  |  完成狀態: {{ item.completed ? '已完成' : '未完成' }}
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="d-flex align-items-center ms-auto">
+                                        <button type="button" class="btn btn-sm bg-success me-2" 
+                                            v-on:click="addsub_todo(item.item_id)">
+                                            <i class="fa-solid fa-plus fa-list-ol me-1"></i>
+                                            <i class="fa-solid fa-bars-staggered"></i>
+                                        </button>     
+                                        <button type="button" class="btn btn-sm bg-danger me-2" 
+                                            v-on:click="Dtodo(item)">
+                                            <i class="fa-solid fa-minus fa-lg"></i>
+                                        </button>     
+                                        <button type="button" class="btn btn-sm bg-warning"  
+                                            v-on:click="Utodo(item)"> 
+                                            <i class="fa-solid fa-pen-to-square fa-lg"></i>
+                                        </button> 
+                                    </div>
+                                </div>
+                            </div>
+<!-- ---------------------------- -->
+                            <!-- 〈子待辦事項〉 -->
+                            <!-- sub_collapse=true  隱藏所有選項 class='d-none' -->
+                            <!-- 若一個tag中有v-if和v-bind, 記得v-if要寫在v-bind之前, 不然v-bind不生效(依靠v-if產生的資料去v-bind) -->
+                            <ul class="list-group list-group-flush ms-4 mt-0 w-75" 
+                                v-if="item.sub_todos && item.sub_todos.length > 0" 
+                                v-bind:class="{'d-none':vdata.sub_collapse}"> 
+                                <li class="list-group-item py-1"
+                                    v-for="(sub,index) in item.sub_todos" 
+                                    v-bind:class="{'list-group-item-secondary':main_index%2!=0}"
+                                    v-bind:key="sub.id">
+                                    <!-- main_index%2!=0...希望主工作事項若為灰色時, 這裏也是灰色 -->
+<!-- -- ------------------------------------  -->
+                                    <div class="d-flex align-items-center">
+                                        <div class="d-flex flex-grow-1" v-if="vdata.sedit_id==sub.item_id">
+                                            <input type="text" class="form-control me-3" 
+                                                v-model="vdata.sedit_title"
+                                                v-on:keyup.enter="sedit_done(sub)"
+                                                v-on:keyup.esc="sedit_cancel(sub)">
+                                            <button type="button" class="btn btn-sm bg-info ms-auto" 
+                                                v-on:click="sedit_done(sub)">  
+                                                <i class="fa-solid fa-right-from-bracket fa-lg"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="d-flex flex-grow-1 justify-content-between" v-else>
+                                            <div class="form-check me-3">
+                                                <input type="checkbox" class="form-check-input" 
+                                                    v-bind:id="sub.item_id" 
+                                                    v-model="sub.completed">
+                                                <label class="form-check-label" 
+                                                    v-bind:for="sub.item_id"
+                                                    v-bind:class="{'text-decoration-line-through':sub.completed}">
+                                                    {{ index+1 }}.{{ sub.title }}  |  截止日期: {{ sub.deadline }}  |  完成狀態: {{ sub.completed ? '已完成' : '未完成' }}
+                                                </label>
+                                            </div>
+                                            <div class="d-flex ms-auto align-items-center">
+                                                <button type="button" class="btn btn-sm bg-danger me-2" 
+                                                    v-on:click="stodoD(item,sub)">
+                                                    <i class="fa-solid fa-minus fa-lg"></i>     
+                                                </button>        <!-- 明細.刪除按紐 -->
+                                                <button type="button" class="btn btn-sm bg-warning" 
+                                                    v-on:click="stodoU(sub)">
+                                                    <i class="fa-solid fa-pen-to-square fa-lg"></i>
+                                                </button>       <!-- 明細.修改按紐 -->
+                                            </div>
+                                        </div>
+                                    </div>
+ <!-- ------------------------------------  -->
+                                </li>   
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div v-bind:class="vclass.cardft"  style="background-color: var(--MistyGreen_swansdown); color:var(--PureProduce_tomato);">
+                <div class="d-flex">
+                    <div class="align-content-center py-1">
+                        全部:<span class="text-bg-primary px-2">{{ vdata.todos.length }}</span>筆　
+                        進行中:<span class="text-bg-warning px-2">{{ vdata.inprogress.length }}</span>筆　
+                        已完成:<span class="text-bg-success px-2">{{ vdata.completed.length }}</span>筆
+                    </div>
+                    <button type="button" class="btn btn-outline-danger ms-auto py-1" v-on:click="clear_todos">
+                        <i class="fa-solid fa-trash-can fa-1"></i>清空資料
+                    </button>       <!-- 清空資料按紐 --> 
+                </div>
+            </div>
+        </div>
+<!-- card ending -->
+    </div>
+    <script src="js/third_party/bootstrap5.3.8.min.js"></script> 
+    <script src="js/third_party/jquery-3.7.1.min.js"></script>
+    <script src="js/third_party/vue.3.5.25.js"></script>
+    <script src="js/third_party/sweetalert2.all.min.js"></script>
+    <script src="js/third_party/axios.min.js"></script>
+    <script src="js/my/index.js"></script>
+</body>
+</html>

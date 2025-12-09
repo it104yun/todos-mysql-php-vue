@@ -1,0 +1,8 @@
+
+@import url('./mycolor.css');
+
+body {
+    background-color: var(--PurePigmented_sea-glass);
+    color: var(--PurePigmented_pine);
+    border-color: var(--PurePigmented_sunstone);
+}
