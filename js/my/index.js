@@ -89,7 +89,7 @@ const vue_app = Vue.createApp({
          * 獲取並格式化今天的日期為 YYYY-MM-DD 格式
          */
         getTodayDate() {
-            var vm = this;
+            let vm = this;
             const now = new Date();
             
             // 獲取年、月、日
@@ -162,7 +162,7 @@ const vue_app = Vue.createApp({
             });
         },
         Utodo(obj) { 
-            var vm = this;
+            let vm = this;
             vm.vdata.edit_id = obj.item_id;
             vm.vdata.edit_title = obj.title;
             vm.vdata.edit_todo = obj;
@@ -182,6 +182,47 @@ const vue_app = Vue.createApp({
             const payload = {
                 item_id: obj.item_id,
                 user_id: vm.user_id || 1, 
+                completed_date: new_completed_date // 將日期/標記傳輸給後端
+            };
+            // 發送 AJAX 請求
+            $.ajax({
+                url: API_URL, 
+                type: 'POST', 
+                data: JSON.stringify(payload),
+                contentType: 'application/json; charset=utf-8', 
+                dataType: 'json', 
+                success: function(response) {
+                    if (response.status !== 'success') {
+                        // 如果後端更新失敗，則將前端狀態改回
+                        obj.completed = !new_completed_status; 
+                        console.error('後端更新完成狀態失敗:', response.message);
+                        Swal.fire('錯誤', '完成狀態更新失敗，請稍後再試。', 'error');
+                    }
+                    // 成功時，Vue 的 computed properties 會自動重新計算
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    // 網路錯誤，將前端狀態改回
+                    obj.completed = !new_completed_status;
+                    console.error('更新完成狀態失敗:', errorThrown);
+                    Swal.fire('網路錯誤', '無法連線到伺服器。', 'error');
+                }
+            });
+        },
+         toggleComplete_sub(obj,main_item_id) {
+            let vm = this;
+            let new_completed_date;
+            if (obj.completed) {
+                new_completed_date = vm.vdata.today_date;
+            } else {
+                new_completed_date = null;
+            };
+
+            // 2. 準備 API 請求
+            const API_ENDPOINT = 'check_todos_sub.php';
+            const API_URL = `${vm.base_dir}${API_ENDPOINT}`;
+            const payload = {
+                todos_id: main_item_id,
+                item_id: obj.item_id,
                 completed_date: new_completed_date // 將日期/標記傳輸給後端
             };
             // 發送 AJAX 請求
@@ -262,49 +303,62 @@ const vue_app = Vue.createApp({
             });
         },
         clear_todos() {
-            swalWithBootstrapButtons.fire({
-                title: '確定全部刪除嗎?',
-                text: "---所有資料連明細都將清空,而且無法復原---",
-                // width: 500,
-                showCancelButton: true,
-                confirmButtonText: '確定',
-                cancelButtonText: '取消',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    var vm = this;
-                    vm.vdata.todos = [];
-                    
-                    swalWithBootstrapButtons.fire(
-                        '已刪除!',
-                        '您的所有資料,已完全清除',
-                        '成功'
-                    );
-                };
-            })
+            let vm = this;
             Swal.fire({
-                title: '確定全部刪除嗎?',
-                text: "---所有資料連明細都將清空,而且無法復原---",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "確定, 全部刪除",
-                cancelButtonText: "取消",
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    var vm = this;
-                    vm.vdata.todos = [];
-                    
-                    swalWithBootstrapButtons.fire(
-                        '已刪除!',
-                        '您的所有資料,已完全清除',
-                        '成功'
-                    );
-                }
-            });
+                    title: '確定全部刪除嗎?',
+                    text: "---所有資料連明細都將清空,而且無法復原---",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "全部刪除",
+                    cancelButtonText: "取消",
+                }).then( (result) => {
+                    if (result.isConfirmed) {
+                        const API_ENDPOINT = 'dele_todos_all.php';
+                        const API_URL = `${vm.base_dir}${API_ENDPOINT}`;
+
+                        let payload = { 
+                            user_id : vm.user_id || 1,
+                            delete_all : "YES_1jqa3z2wsx2897uiop=409+urq876" 
+                        };
+                        // 發送 AJAX 請求到後端
+                        $.ajax({
+                            url: API_URL, 
+                            type: 'POST', // 雖然是刪除，但為兼容性通常使用 POST
+                            data: JSON.stringify(payload),
+                            contentType: 'application/json; charset=utf-8', 
+                            dataType: 'json', 
+                            success: function(response) {
+                                if (response.status === 'success') {
+                                    // 後端成功刪除後，才從前端陣列中移除
+                                    let obj_idx = vm.vdata.todos.findIndex(item => item.item_id === obj.item_id);
+                                    if (obj_idx !== -1) {
+                                        vm.vdata.todos.splice(obj_idx, 1);
+                                        // 重新計算分類 (由於 todos 是 computed property 的依賴，這裡不需要手動更新 completed/inprogress)
+                                        
+                                        Swal.fire('已刪除!', '待辦事項已成功清除', 'success');
+                                    }
+                                } else {
+                                    Swal.fire('刪除失敗', response.message, 'error');
+                                }
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                Swal.fire('網路錯誤', '無法連線到伺服器進行刪除。', 'error');
+                            }
+                        })
+
+                        vm.vdata.todos = [];
+                        Swal.fire(
+                            '已刪除!', 
+                            '您的所有資料,已完全清除', 
+                            'success'
+                        );
+                    }
+                });
         },
         edit_done(obj) {
-            var vm = this;
+            let vm = this;
             obj.title = vm.vdata.edit_title;    //  於此同時, todos也修改了( todos.title=item.title=obj.title)
             vm.vdata.edit_id = '';
             vm.vdata.edit_title = '';
@@ -339,34 +393,63 @@ const vue_app = Vue.createApp({
             });
         },
         edit_cancel(obj) {
-            var vm = this;
+            let vm = this;
             vm.vdata.edit_id = '';
             vm.vdata.edit_title = '';
             vm.vdata.edit_todo='';
         },
         addsub_todo(todo_id) {
-            var vm = this;
+            let vm = this;
             vm.vdata.sub_collapse = false;     //新增明細時, 將收合『取消』-->就是打開
             vm.vdata.addsub_todoid = todo_id;
         },
         sub_todoC_done(obj) {
-            var vm = this;
-            // 關閉前,先新增------------------begin
-            var sub_todo_add = (vm.vdata.sub_todo).trim();
+            let vm = this;
+            let sub_todo_add = (vm.vdata.sub_todo).trim();
             if (!sub_todo_add) {
                 vm.vdata.addsub_todoid = ''; 
                 return;
             };
-            var obj_idx = vm.vdata.todos.indexOf(obj);        // 1-先找到整個物件的索引位置
-            var todo = vm.vdata.todos[obj_idx];               // 2-取出該物件    
-            todo.sub_todos.push
-            ({
-                id: Date.now().toString(),
+            let obj_idx = vm.vdata.todos.indexOf(obj);        // 1-先找到整個物件的索引位置
+            let todo = vm.vdata.todos[obj_idx];               // 2-取出該物件  
+            //  準備 API 請求
+            const API_ENDPOINT = 'create_todos_sub.php';
+            const API_URL = `${vm.base_dir}${API_ENDPOINT}`;
+            const payload = {
+                todos_id: vm.vdata.addsub_todoid,
                 title: sub_todo_add,
-                completed: false,
+            };
+            $.ajax({
+                url: API_URL, 
+                type: 'POST', 
+                data: JSON.stringify(payload),
+                contentType: 'application/json; charset=utf-8', 
+                dataType: 'json', 
+                success: function(response) {
+                    if (response.status === 'success') {  
+                        // 關閉前,先新增------------------begin
+                        todo.sub_todos.push
+                        ({
+                            id: Date.now().toString(),
+                            title: sub_todo_add,
+                            completed: false,
+                        });
+                        // 關閉前,先新增------------------ending
+                        vm.vdata.addsub_todoid = '';                        // v-if="vdata.addsub_todoid==item.id"<--不成立, 關閉該<input>
+                    } else {
+                        // 如果後端更新失敗，則將前端狀態改回
+                        console.error('後端更新完成狀態失敗:', response.message);
+                        Swal.fire('錯誤', '完成狀態更新失敗，請稍後再試。', 'error');
+                    }
+                    // 成功時，Vue 的 computed properties 會自動重新計算
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    // 網路錯誤，將前端狀態改回
+                    console.error('更新完成狀態失敗:', errorThrown);
+                    Swal.fire('網路錯誤', '無法連線到伺服器。', 'error');
+                }
             });
-            // 關閉前,先新增------------------ending
-            vm.vdata.addsub_todoid = '';                        // v-if="vdata.addsub_todoid==item.id"<--不成立, 關閉該<input>
+
         },
         stodoD(obj,sub_obj) {
             Swal.fire({
@@ -380,39 +463,93 @@ const vue_app = Vue.createApp({
             cancelButtonText: "取消",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    var vm = this;
-                    var obj_idx = vm.vdata.todos.indexOf(obj);               // 1-先找到整個物件的索引位置
-                    var todo = vm.vdata.todos[obj_idx];                      // 2-取出該物件    
-                    var sub_obj_idx = todo.sub_todos.indexOf(sub_obj);      // 3-在該物件的sub_todos找到該物件的索引
-                    vm.vdata.todos[obj_idx].sub_todos.splice(sub_obj_idx,1); // 4-移除該sub_todos
+                    let vm = this;
+                    // ⭐️ 準備要發送的資料： item_id 和 user_id ⭐️
+                    const payload = {
+                        todos_id: obj.item_id,
+                        item_id: sub_obj.item_id,
+                    };
+
+                    const API_ENDPOINT = 'dele_todos_sub.php';
+                    const API_URL = `${vm.base_dir}${API_ENDPOINT}`;
+                    // 發送 AJAX 請求到後端
+                    $.ajax({
+                        url: API_URL, 
+                        type: 'POST', // 雖然是刪除，但為兼容性通常使用 POST
+                        data: JSON.stringify(payload),
+                        contentType: 'application/json; charset=utf-8', 
+                        dataType: 'json', 
+                        success: function(response) {
+                            if (response.status === 'success') {
+                                // 後端成功刪除後，才從前端陣列中移除
+                                let obj_idx = vm.vdata.todos.indexOf(obj);               // 1-先找到整個物件的索引位置
+                                let todo = vm.vdata.todos[obj_idx];                      // 2-取出該物件    
+                                let sub_obj_idx = todo.sub_todos.indexOf(sub_obj);      // 3-在該物件的sub_todos找到該物件的索引
+                                vm.vdata.todos[obj_idx].sub_todos.splice(sub_obj_idx,1); // 4-移除該sub_todos    
+                                Swal.fire('已刪除!', '待辦事項已成功清除', 'success');
+                            } else {
+                                Swal.fire('刪除失敗', response.message, 'error')
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            Swal.fire('網路錯誤', '無法連線到伺服器進行刪除。', 'error');
+                        }
+                    });
                 }
             });
         },
-        stodoU(obj) { 
-            var vm = this;
+        stodoU(obj,main_item_id) { 
+            let vm = this;
             vm.vdata.sedit_id = obj.item_id;
             vm.vdata.sedit_todo = obj;
             vm.vdata.sedit_title = obj.title;
         },
-        sedit_done(obj) {
-            var vm = this;
+        sedit_done(obj,main_item_id) {
+            let vm = this;
             obj.title = vm.vdata.sedit_title;    //  於此同時, todos也修改了( todos.title=item.title=obj.title)
             vm.vdata.sedit_id = '';
             vm.vdata.sedit_title = '';
             vm.vdata.sedit_todo='';
+           //  準備 API 請求
+            const API_ENDPOINT = 'update_todos_sub.php';
+            const API_URL = `${vm.base_dir}${API_ENDPOINT}`;
+            const payload = {
+                todos_id: main_item_id,
+                item_id: obj.item_id,
+                title: obj.title,
+            };
+            $.ajax({
+                url: API_URL, 
+                type: 'POST', 
+                data: JSON.stringify(payload),
+                contentType: 'application/json; charset=utf-8', 
+                dataType: 'json', 
+                success: function(response) {
+                    if (response.status !== 'success') {
+                        // 如果後端更新失敗，則將前端狀態改回
+                        console.error('後端更新完成狀態失敗:', response.message);
+                        Swal.fire('錯誤', '完成狀態更新失敗，請稍後再試。', 'error');
+                    }
+                    // 成功時，Vue 的 computed properties 會自動重新計算
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    // 網路錯誤，將前端狀態改回
+                    console.error('更新完成狀態失敗:', errorThrown);
+                    Swal.fire('網路錯誤', '無法連線到伺服器。', 'error');
+                }
+            });
         },
         sedit_cancel(obj) {
-            var vm = this;
+            let vm = this;
             vm.vdata.sedit_id = '';
             vm.vdata.sedit_title = '';
             vm.vdata.sedit_todo='';
         },
-
     },
     computed: {
         filter_todo() {
-            var vm = this;
-            var rtn;
+            let vm = this;
+            let rtn;
             vm.vdata.completed = [];
             vm.vdata.inprogress = [];
             vm.vdata.todos.forEach(function(item,index) {
